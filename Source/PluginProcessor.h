@@ -2,6 +2,11 @@
 
 #include <juce_audio_processors/juce_audio_processors.h>
 
+#include "xtract/libxtract.h"
+#include "xtract/xtract_stateful.h"
+#include "xtract/xtract_scalar.h"
+#include "xtract/xtract_helper.h"
+
 class AudioPluginAudioProcessor : public juce::AudioProcessor
 {
 public:
@@ -36,4 +41,6 @@ public:
 
 private:
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (AudioPluginAudioProcessor)
+
+    xtract_mel_filter mel_filters;
 };

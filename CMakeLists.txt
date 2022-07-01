@@ -5,7 +5,7 @@ cmake_minimum_required(VERSION 3.21)
 
 # Change this to the name of your plugin
 # This cannot have spaces (but PRODUCT_NAME can)
-set(PROJECT_NAME "Pamplejuce")
+set(PROJECT_NAME "fatcat")
 
 # Set the plugin formats you'll be building here.
 # Valid formats: AAX Unity VST AU AUv3 Standalone
@@ -47,8 +47,8 @@ juce_add_plugin("${PROJECT_NAME}"
     # VERSION ...                               # Set this if the plugin version is different to the project version
     # ICON_BIG ...                              # ICON_* arguments specify a path to an image file to use as an icon for the Standalone
     # ICON_SMALL ...
-    COMPANY_NAME Pamplejuce
-    BUNDLE_ID com.pamplejuce.pamplejuce
+    COMPANY_NAME fatcat
+    BUNDLE_ID com.fatcat.fatcat
     # IS_SYNTH TRUE/FALSE                       # Is this a synth or an effect?
     # NEEDS_MIDI_INPUT TRUE/FALSE               # Does the plugin need midi input?
     # NEEDS_MIDI_OUTPUT TRUE/FALSE              # Does the plugin need midi output?
@@ -126,6 +126,22 @@ target_link_libraries("${PROJECT_NAME}"
     juce::juce_recommended_lto_flags
     juce::juce_recommended_warning_flags)
 
+include(ExternalProject)
+find_program(MAKE_EXE NAMES gmake nmake make)
+ExternalProject_Add(xtract
+    GIT_REPOSITORY  https://github.com/jamiebullock/LibXtract
+    GIT_TAG         develop
+    CONFIGURE_COMMAND ""
+    BUILD_IN_SOURCE 1
+    BUILD_COMMAND   ${MAKE_EXE} install
+)
+
+ExternalProject_Get_Property(xtract source_dir)
+message(STATUS "foo include dir: ${source_dir}")
+target_include_directories("${PROJECT_NAME}" PRIVATE "${source_dir}/include/")
+find_library(XTRACT xtract)
+target_link_libraries("${PROJECT_NAME}" PRIVATE ${XTRACT})
+
 # Required for ctest (which is just easier for cross-platform CI)
 # include(CTest) does this too, but adds tons of targets we don't want
 # See: https://github.com/catchorg/Catch2/issues/2026
@@ -154,6 +170,9 @@ target_compile_features(Tests PRIVATE cxx_std_20)
 # Our test executable also wants to know about our plugin code...
 target_include_directories(Tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/Source)
 target_link_libraries(Tests PRIVATE Catch2::Catch2WithMain "${PROJECT_NAME}" ${JUCE_DEPENDENCIES})
+
+target_include_directories(Tests PRIVATE "${source_dir}/include/")
+target_link_libraries(Tests PRIVATE ${XTRACT})
 
 # Make an Xcode Scheme for the test executable so we can run tests in the IDE
 set_target_properties(Tests PROPERTIES XCODE_GENERATE_SCHEME ON)
