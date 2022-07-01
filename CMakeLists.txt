@@ -137,9 +137,8 @@ ExternalProject_Add(xtract
 )
 
 ExternalProject_Get_Property(xtract source_dir)
-message(STATUS "foo include dir: ${source_dir}")
 target_include_directories("${PROJECT_NAME}" PRIVATE "${source_dir}/include/")
-find_library(XTRACT xtract)
+find_library(XTRACT xtract "${source_dir}/include/")
 target_link_libraries("${PROJECT_NAME}" PRIVATE ${XTRACT})
 
 # Required for ctest (which is just easier for cross-platform CI)
